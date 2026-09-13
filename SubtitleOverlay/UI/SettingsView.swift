@@ -78,15 +78,8 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
-                HStack {
-                    Text("History Lines")
-                    Slider(value: Binding(
-                        get: { Double(settings.maxHistoryLines) },
-                        set: { settings.maxHistoryLines = Int($0) }
-                    ), in: 1...5, step: 1)
-                    Text("\(settings.maxHistoryLines)")
-                        .frame(width: 20, alignment: .trailing)
-                        .foregroundColor(.secondary)
+                Button("Reset Subtitle Position") {
+                    SubtitleWindowController.shared.resetPosition()
                 }
             } header: {
                 Text("Appearance")

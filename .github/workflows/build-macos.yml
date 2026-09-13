@@ -1,0 +1,86 @@
+name: Build SubtitleOverlay
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build macOS ARM64
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: |
+          xcodebuild -version
+          sw_vers
+
+      - name: Show project schemes
+        run: |
+          xcodebuild \
+            -project SubtitleOverlay.xcodeproj \
+            -list
+
+      - name: Build Release
+        run: |
+          xcodebuild \
+            -project SubtitleOverlay.xcodeproj \
+            -scheme SubtitleOverlay \
+            -configuration Release \
+            -sdk macosx \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$PWD/build" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            build
+
+      - name: Ad-hoc sign app
+        run: |
+          APP_PATH="$PWD/build/Build/Products/Release/SubtitleOverlay.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "SubtitleOverlay.app not found"
+            find "$PWD/build" -name "*.app" -print
+            exit 1
+          fi
+
+          codesign \
+            --force \
+            --deep \
+            --sign - \
+            "$APP_PATH"
+
+          codesign \
+            --verify \
+            --deep \
+            --strict \
+            --verbose=2 \
+            "$APP_PATH"
+
+      - name: Package
+        run: |
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            "$PWD/build/Build/Products/Release/SubtitleOverlay.app" \
+            "$PWD/SubtitleOverlay-macOS-arm64.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SubtitleOverlay-macOS-arm64
+          path: SubtitleOverlay-macOS-arm64.zip
+          if-no-files-found: error
+          retention-days: 30

@@ -14,7 +14,7 @@ struct ContentView: View {
     @State private var permissionDenied = false
     @State private var errorMessage: String?
 
-    private let windowController = SubtitleWindowController()
+    private let windowController = SubtitleWindowController.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -250,12 +250,6 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
                     .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-            }
-        }
-        .onReceive(speech.$recognizedText) { text in
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if settings.showChineseTranslation, !trimmed.isEmpty {
-                translator.translate(trimmed)
             }
         }
     }

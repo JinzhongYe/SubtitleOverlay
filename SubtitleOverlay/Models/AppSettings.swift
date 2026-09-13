@@ -20,7 +20,7 @@ final class AppSettings: ObservableObject {
     @AppStorage("subtitleFontSize") var subtitleFontSize: Double = 20
     @AppStorage("backgroundOpacity") var backgroundOpacity: Double = 0.45
     @AppStorage("windowWidth") var windowWidth: Double = 600
-    @AppStorage("maxHistoryLines") var maxHistoryLines: Int = 3
+    @AppStorage("subtitleWindowHeight") var subtitleWindowHeight: Double = 0
     @AppStorage("selectedAppBundleID") var selectedAppBundleID: String = ""
 
     // Language

@@ -11,7 +11,6 @@ final class TranslationService: ObservableObject {
     @Published var statusMessage: String = ""
 
     private var session: TranslationSession?
-    private var latestTask: Task<Void, Never>?
     private var currentSourceId: String = ""
     private var currentTargetId: String = ""
 
@@ -80,8 +79,6 @@ final class TranslationService: ObservableObject {
     }
 
     private func stopTranslation() {
-        latestTask?.cancel()
-        latestTask = nil
         session = nil
         translatedText = ""
     }
@@ -90,49 +87,46 @@ final class TranslationService: ObservableObject {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension")!)
     }
 
-    func translate(_ text: String) {
+    func translate(_ text: String) async -> String? {
         // Re-setup if languages changed
         let src = sourceId
         let tgt = targetId
         if src != currentSourceId || tgt != currentTargetId {
-            Task {
-                stopTranslation()
-                await setup()
-            }
-            return
+            stopTranslation()
+            await setup()
         }
 
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             translatedText = ""
-            return
+            return nil
         }
 
         if session == nil {
-            Task { await setup() }
-            return
+            await setup()
         }
 
-        latestTask?.cancel()
-        latestTask = Task { [weak self] in
-            guard let self, let session = self.session else { return }
+        guard let session else { return nil }
 
-            do {
-                let response = try await session.translate(trimmed)
-                guard !Task.isCancelled else { return }
-                let result = response.targetText
-                if !result.isEmpty {
-                    self.translatedText = result
-                    if !self.isReady {
-                        self.isReady = true
-                        self.statusMessage = ""
-                    }
+        do {
+            let response = try await session.translate(trimmed)
+            guard !Task.isCancelled,
+                  src == currentSourceId,
+                  tgt == currentTargetId else { return nil }
+            let result = response.targetText
+            if !result.isEmpty {
+                translatedText = result
+                if !isReady {
+                    isReady = true
+                    statusMessage = ""
                 }
-            } catch {
-                guard !Task.isCancelled, !(error is CancellationError) else { return }
-                print("[SubtitleOverlay] Translation failed: \(error)")
-                self.isReady = false
             }
+            return result.isEmpty ? nil : result
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError) else { return nil }
+            print("[SubtitleOverlay] Translation failed: \(error)")
+            isReady = false
+            return nil
         }
     }
 }

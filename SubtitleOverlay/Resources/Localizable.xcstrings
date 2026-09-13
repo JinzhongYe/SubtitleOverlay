@@ -12,9 +12,6 @@
         }
       }
     },
-    "%@" : {
-
-    },
     "%@ Recognition" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -263,6 +260,7 @@
       }
     },
     "History Lines" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -609,6 +607,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请求权限"
+          }
+        }
+      }
+    },
+    "Reset Subtitle Position" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置字幕位置"
           }
         }
       }
